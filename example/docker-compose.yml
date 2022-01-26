@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  app:
+    image: michielvaneerd/php8-apache-composer-multipass
+    ports:
+      - 8080:80
+    volumes:
+      - ./htdocs:/var/www/html
+      - ./.docker/init/:/docker-init
+      - ./.docker/vhost.conf:/etc/apache2/conf-enabled/myapp.conf
+    env_file:
+      - .env
+    depends_on:
+      - db
+    # Specifying an entrypoint will disable the CMD command from the image
+    entrypoint:
+      - /docker-init/init.sh
+  db:
+    image: mariadb
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - 3306:3306
+  maildev:
+    # Original maildev package has no arm64 support
+    image: minidocks/maildev
+    ports:
+      - 1080:80
+
+volumes:
+  db-data:
